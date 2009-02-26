@@ -4,11 +4,11 @@ module TruncateTags
   desc %{
     Truncate contents. Attributes:
 
-      * @chars@ - number of chars within the tag (include ellipses). Default is 50.
-      * @keep_words_intact@ - can be 'true' or 'false'. If true, it will leave whole words, but not cut them ('hello...' instead of 'hello fr...'). Default is true.
-      * @ellipses@ - default is '...'
-      * @strip_html@ - can be 'true' of 'false'. Strips all HTML tags. Default is 'true'
-      * @strip_newlines@ - can be 'true' or 'false'. Strips all \\r and \\n.
+    1. @chars@ - number of chars within the tag (include ellipses). Default is 50.
+    2. @keep_words_intact@ - can be 'true' or 'false'. If true, it will leave whole words, but not cut them ('hello...' instead of 'hello fr...'). Default is true.
+    3. @ellipses@ - default is '...'
+    4. @strip_html@ - can be 'true' of 'false'. Strips all HTML tags. Default is 'true'
+    5. @strip_newlines@ - can be 'true' or 'false'. Strips all \\r and \\n. Default is 'true'
 
     *Usage:*
 
@@ -17,7 +17,49 @@ module TruncateTags
     </r:truncate></code></pre>
   }
   tag 'truncate' do |tag|
+    text = tag.expand
+    chars_method = if text.respond_to?(:mb_chars)
+      'mb_chars'
+    elsif RUBY_VERSION < '1.9'
+      'chars'
+    else
+      'to_s'
+    end
+    text = text.send(chars_method)
+    
+    chars = (tag.attr['chars'] || 50).to_i
+    keep_words_intact = tag.attr['keep_words_intact'] ? (tag.attr['keep_words_intact'] == 'true') : true
+    ellipses = (tag.attr['ellipses'] || '...').send(chars_method)
+    strip_html = tag.attr['strip_html'] ? (tag.attr['strip_html'] == 'true') : true
+    strip_newlines = tag.attr['strip_newlines'] ? (tag.attr['strip_newlines'] == 'true') : true
+    
+    helper = ActionView::Base.new
+    
+    text = helper.strip_tags(text) if strip_html
+    text = text.gsub(/\s+/, " ") if strip_newlines
+    unless text.length <= chars
+      truncate_method = keep_words_intact ? 'truncate_words' : 'truncate'
+      text = helper.send(truncate_method, text, chars, ellipses)
+    end
+    text
+  end
+  
+end
 
+module ActionView::Helpers::TextHelper
+
+  def truncate_words(text, length, truncate_string)
+    return text if text.length <= length
+    length = (length - truncate_string.size)
+    str = text[0, length + 1] 
+    return truncate_string unless str
+    idx = 0
+    last_idx = nil
+    while(idx && last_idx != idx) do
+      last_idx = idx
+      idx = str.index(/\s/, idx.to_i + 1)
+    end
+    (str[0, last_idx] + truncate_string).to_s
   end
   
 end
