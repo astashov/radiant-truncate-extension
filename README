@@ -1,5 +1,29 @@
 == Truncate Radiant Extenion
 
+Adds tag for truncating contents within the tag. Attributes:
+
+  1. @chars@ - number of chars within the tag (include ellipses). Default is 50.
+  2. @keep_words_intact@ - can be 'true' or 'false'. If true, it will leave whole words, but not cut them ('hello...' instead of 'hello fr...'). Default is true.
+  3. @ellipses@ - default is '...'
+  4. @strip_html@ - can be 'true' of 'false'. Strips all HTML tags. Default is 'true'
+  5. @strip_newlines@ - can be 'true' or 'false'. Strips all \\r and \\n. Default is 'true'
+
+
+== Usage
+
+  <r:truncate [chars='50'] [keep_words_intact='true'] [ellipses='...'] [strip_html='true'] [strip_newlines='true']>
+    <r:snippet name="snip" />
+  </r:truncate>
+
+
+== Example
+
+  <r:truncate>
+    Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+  </r:truncate>
+
+will return 'Lorem ipsum dolor sit amet, consectetuer...'
+
 
 == Authors and Credits
  
