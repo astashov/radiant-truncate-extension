@@ -1,4 +1,4 @@
-require 'application'
+require 'application_controller'
 
 class TruncateExtension < Radiant::Extension
   version "0.1"
