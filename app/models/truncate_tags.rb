@@ -18,18 +18,11 @@ module TruncateTags
   }
   tag 'truncate' do |tag|
     text = tag.expand
-    chars_method = if text.respond_to?(:mb_chars)
-      'mb_chars'
-    elsif RUBY_VERSION < '1.9'
-      'chars'
-    else
-      'to_s'
-    end
-    text = text.send(chars_method)
+    text = text.mb_chars
     
     chars = (tag.attr['chars'] || 50).to_i
     keep_words_intact = tag.attr['keep_words_intact'] ? (tag.attr['keep_words_intact'] == 'true') : true
-    ellipses = (tag.attr['ellipses'] || '...').send(chars_method)
+    ellipses = (tag.attr['ellipses'] || '...').mb_chars
     strip_html = tag.attr['strip_html'] ? (tag.attr['strip_html'] == 'true') : true
     strip_newlines = tag.attr['strip_newlines'] ? (tag.attr['strip_newlines'] == 'true') : true
     
@@ -39,7 +32,7 @@ module TruncateTags
     text = text.gsub(/\s+/, " ") if strip_newlines
     unless text.length <= chars
       truncate_method = keep_words_intact ? 'truncate_words' : 'truncate'
-      text = helper.send(truncate_method, text, chars, ellipses)
+      text = helper.send(truncate_method, text, :length => chars, :omission => ellipses)
     end
     text
   end
@@ -48,9 +41,12 @@ end
 
 module ActionView::Helpers::TextHelper
 
-  def truncate_words(text, length, truncate_string)
+  def truncate_words(text, *args)
+    options = args.extract_options!
+    truncate_string = options[:omission] || '...'
+    length = options[:length] || 50
     return text if text.length <= length
-    length = (length - truncate_string.size)
+    length = (length - truncate_string.mb_chars.length)
     str = text[0, length + 1] 
     return truncate_string unless str
     idx = 0

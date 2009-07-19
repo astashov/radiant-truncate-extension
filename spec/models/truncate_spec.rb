@@ -4,21 +4,34 @@ describe "truncate_words" do
   include ActionView::Helpers::TextHelper
 
   it "should not truncate short contents" do
-    truncate_words("hello", 10, "...").should == "hello"
+    truncate_words("hello", :length => 10, :omission => "...").should == "hello"
+  end
+
+  it "should return the omission string if the length is less than the first full word plus the omission string" do
+    truncate_words("hello there", :length => 7, :omission => "...").should == "..."
+  end
+  
+  it "should truncate the text to less than or equal to the given length" do
+    text = "Returns the KC normalization of the string by default. NFKC is considered the best normalization form for passing strings to databases and validations."
+    result = "Returns the KC normalization of the string by..."
+    truncate_words(text, :length => 50, :omission => "...").length.should <= 50
+  end
+  
+  it "should not truncate the text if the text is shorter than the the given length" do
+    truncate_words("hello there", :length => 11, :omission => "...").should == "hello there"
+  end
+  
+  it "should to the last full word within the given length plus the omission length" do
+    truncate_words("hello there", :length => 9, :omission => "...").should == "hello..."
   end
 
   it "should truncate long contents" do
-    truncate_words("hello there", 5, "...").should == "..."
-    truncate_words("hello there", 7, "...").should == "..."
-    truncate_words("hello there", 9, "...").should == "hello..."
-    truncate_words("hello there", 11, "...").should == "hello there"
     text = "Returns the KC normalization of the string by default. NFKC is considered the best normalization form for passing strings to databases and validations."
     result = "Returns the KC normalization of the string by..."
-    truncate_words(text, 50, "...").should == result
+    truncate_words(text, :length => 50, :omission => "...").should == result
   end
 
   it "should truncate multibyte contents" do
-    truncate_words("ɦɛĺłø ŵőřļđ".chars, 9, "...").should == "ɦɛĺłø..."
-    truncate_words("ɦɛĺłø ŵőřļđ".chars, 12, "...").should == "ɦɛĺłø ŵőřļđ"
+    truncate_words("ɦɛĺłø ŵőřļđ".mb_chars, :length => 9, :omission => "...").should == "ɦɛĺłø..."
   end
 end

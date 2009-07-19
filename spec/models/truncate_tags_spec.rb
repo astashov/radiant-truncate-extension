@@ -11,6 +11,10 @@ describe TruncateTags do
     )
   end
   
+  it "should truncate the text to the given 'chars' length" do
+    @page.should render("<r:truncate chars='400'>#{(%{This is a thousand monkeys working at a thousand typewriters. Soon, they'll have written the greatest novel known to mankind. (reads one of the typewriters) It was the best of times, it was the blurst of times?! you stupid monkey! (monkey screeches) Oh, shut up.} * 2)}</r:truncate>").as(%{This is a thousand monkeys working at a thousand typewriters. Soon, they'll have written the greatest novel known to mankind. (reads one of the typewriters) It was the best of times, it was the blurst of times?! you stupid monkey! (monkey screeches) Oh, shut up.This is a thousand monkeys working at a thousand typewriters. Soon, they'll have written the greatest novel known to mankind. (reads...})
+  end
+  
   it "should truncate with keeping words intact" do
     @page.should render("<r:truncate chars='10'>Something</r:truncate>").as('Something')
     @page.should render(
